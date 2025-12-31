@@ -269,7 +269,6 @@ class DiaryService:
                     "target_length": target_length,
                     "personality_desc": personality_desc,
                     "style": personality.get("style", ""),
-                    "interest": personality.get("interest", ""),
                     "name": name,
                 }
                 try:

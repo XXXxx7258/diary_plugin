@@ -846,14 +846,7 @@ class DiaryManageCommand(BaseCommand):
             time_desc = "到现在为止" if is_today else "这一天"
             
             # 构建完整的人设描述
-            personality_desc = personality['core']
-            if personality.get('side'):
-                personality_desc += f"，{personality['side']}"
-            
-            # 构建兴趣描述
-            interest_desc = ""
-            if personality.get('interest'):
-                interest_desc = f"\n我的兴趣爱好:{personality['interest']}"
+            personality_desc = personality["core"]
             
             style = diary_action.get_config("diary_generation.style", "diary")
             if style == "custom":
@@ -865,7 +858,6 @@ class DiaryManageCommand(BaseCommand):
                     "target_length": target_length,
                     "personality_desc": personality_desc,
                     "style": personality.get("style", ""),
-                    "interest": personality.get("interest", ""),
                     "name": f"我是{personality_desc}",
                     "time_desc": time_desc,
                 }
@@ -877,7 +869,7 @@ class DiaryManageCommand(BaseCommand):
                     style = "diary"
             if style == "qqzone":
                 prompt = f"""{personality_desc}
-我平时说话的风格是:{personality['style']}{interest_desc}
+我平时说话的风格是:{personality['style']}
 
 今天是{date}，以下是我{time_desc}的一些聊天片段：
 {timeline}
@@ -886,12 +878,12 @@ class DiaryManageCommand(BaseCommand):
 - 开头包含日期与天气：{date_with_weather}
 - 口语化、轻松自然，像随手发的感想
 - 有情绪和个性，不要写成流水账
-- 结合我的兴趣或当天的话题，挑重点写
+- 结合当天的话题，挑重点写
 - 只输出正文，不要任何前后缀、引号、括号、表情、@ 等
 输出："""
             elif style == "diary":
                 prompt = f"""我是{personality_desc}
-我平时说话的风格是:{personality['style']}{interest_desc}
+我平时说话的风格是:{personality['style']}
 
 今天是{date},回顾一下{time_desc}的聊天记录:
 {timeline}
@@ -905,7 +897,7 @@ class DiaryManageCommand(BaseCommand):
 6. 偶尔加一两句小总结或感想
 7. 不要写成流水账,要有重点和感情色彩
 8. 用第一人称"我"来写
-9. 结合我的兴趣爱好,对相关话题可以多写一些感想
+9. 结合聊天话题,对相关内容可以多写一些感想
 
 我的日记:"""
 
