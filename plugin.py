@@ -113,7 +113,7 @@ class DiaryPlugin(BasePlugin):
             "custom_prompt": ConfigField(
                 type=str,
                 default="",
-                description="当 style=custom 时使用的模板。可用占位符: {date},{timeline},{date_with_weather},{target_length},{personality_desc},{style},{interest},{name}"
+                description="当 style=custom 时使用的模板。可用占位符: {date},{timeline},{date_with_weather},{target_length},{personality_desc},{style},{name}"
             ),
             "enable_syle_send": ConfigField(type=bool, default=False, description="是否开启回复改写")
         },
