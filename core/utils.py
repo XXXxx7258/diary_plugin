@@ -48,9 +48,7 @@ async def get_bot_personality() -> Dict[str, str]:
     Returns:
         Dict[str, str]: 包含Bot人设信息的字典，包含以下键：
             - core: 核心人设描述
-            - side: 情感特征/人设补充
             - style: 回复风格
-            - interest: 兴趣爱好
     
     Examples:
         >>> personality = await action.get_bot_personality()
@@ -59,14 +57,12 @@ async def get_bot_personality() -> Dict[str, str]:
     """
     personality = config_api.get_global_config("personality.personality", "是一个机器人助手")
     reply_style = config_api.get_global_config("personality.reply_style", "")
-    interest = config_api.get_global_config("personality.interest", "")
     nickname = config_api.get_global_config("bot.nickname", "")
     alias_names = config_api.get_global_config("bot.alias_names", [])
     
     return {
         "core": personality,
         "style": reply_style,
-        "interest": interest,
         "nickname": nickname,
         "alias_names": alias_names
     }
