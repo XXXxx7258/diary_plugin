@@ -125,7 +125,16 @@ class DefaultModelSection(PluginConfigBase):
         description="系统模型 task,与 host model_configs.py 的 chat 类 task 对齐",
     )
     temperature: float = Field(default=0.7, description="生成温度")
-    llm_timeout_seconds: int = Field(default=120, ge=10, le=600, description="单次 LLM 调用超时(秒)")
+    llm_timeout_seconds: int = Field(
+        default=120,
+        ge=10,
+        le=600,
+        description=(
+            "单次 LLM 调用外层超时(秒)。"
+            "⚠️ host RPC 桥接层硬上限 30s,本字段 > 30 时仍会被 RPC 30s 先触发 E_TIMEOUT。"
+            "日记 prompt 较长经常超过 30s,建议改走 [custom_model].use_custom_model=true 直连。"
+        ),
+    )
 
 
 class ScheduleSection(PluginConfigBase):
