@@ -78,14 +78,20 @@ class MessageFetcher:
             logger.error("ctx.message 查询失败 (chat_id=%s): %s", chat_id, exc, exc_info=True)
             return []
 
+        # SDK _normalize_capability_result 已自动剥 message.get_by_time* 的 messages 字段,
+        # 正常时直接返回 list[dict]。但 host 返回 success=False / 走 unknown capability 时
+        # 会保留 dict envelope,这里两种形态都兼容。
         result = peel_envelope(result)
-        if not isinstance(result, dict):
-            return []
-        if not result.get("success", False):
-            logger.warning("ctx.message 返回 success=False: %s", result.get("error"))
-            return []
-        messages = result.get("messages") or []
-        return [m for m in messages if isinstance(m, dict)]
+        if isinstance(result, list):
+            return [m for m in result if isinstance(m, dict)]
+        if isinstance(result, dict):
+            if not result.get("success", True):
+                logger.warning("ctx.message 返回 success=False: %s", result.get("error"))
+                return []
+            messages = result.get("messages") or []
+            return [m for m in messages if isinstance(m, dict)]
+        logger.warning("ctx.message 返回非 list/dict: %s", type(result).__name__)
+        return []
 
     async def fetch_for_chats(
         self,
