@@ -3,8 +3,7 @@
 输入是 dict 消息列表(host 序列化),字段参考
 ``src/plugin_runtime/host/message_utils.py:_session_message_to_dict``。
 
-R13 适配点:旧 image_processor 用 ``getattr(msg, ...)``,本期改成
-``msg.get(...)``,并直接用 host 提供的 ``is_picture: bool``。
+消息为 dict 形式,通过 ``msg.get(...)`` 访问,优先使用 host 提供的 ``is_picture`` 标志。
 """
 
 import datetime

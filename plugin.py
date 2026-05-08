@@ -52,9 +52,7 @@ class DiaryPlugin(MaiBotPlugin):
         self._llm_runner = None
         self._qzone_publisher = None
 
-    # ---------------------------------------------------------------- #
-    # 生命周期
-    # ---------------------------------------------------------------- #
+    # ===== 生命周期 =====
 
     async def on_load(self) -> None:
         cfg = self.config
@@ -139,9 +137,7 @@ class DiaryPlugin(MaiBotPlugin):
     def _ensure_pipeline_ready(self) -> bool:
         return self._pipeline is not None
 
-    # ---------------------------------------------------------------- #
-    # 调度器
-    # ---------------------------------------------------------------- #
+    # ===== 调度器 =====
 
     def _should_run_scheduler(self) -> bool:
         cfg = self.config.schedule
@@ -186,9 +182,7 @@ class DiaryPlugin(MaiBotPlugin):
                 self.ctx.logger.error("调度器异常: %s", exc, exc_info=True)
                 await asyncio.sleep(60)
 
-    # ---------------------------------------------------------------- #
-    # @Tool emotion_analysis
-    # ---------------------------------------------------------------- #
+    # ===== @Tool emotion_analysis =====
 
     @Tool(
         "emotion_analysis",
@@ -236,9 +230,7 @@ class DiaryPlugin(MaiBotPlugin):
             content = "聊天主题: 日常对话"
         return {"name": "emotion_analysis", "content": content}
 
-    # ---------------------------------------------------------------- #
-    # @Command /diary
-    # ---------------------------------------------------------------- #
+    # ===== @Command /diary =====
 
     @Command(
         "diary",
@@ -294,9 +286,7 @@ class DiaryPlugin(MaiBotPlugin):
                 await self.ctx.send.text(f"❌ 命令执行出错: {exc}", stream_id)
             return False, str(exc), True
 
-    # ---------------------------------------------------------------- #
-    # 子命令实现
-    # ---------------------------------------------------------------- #
+    # ===== 子命令实现 =====
 
     async def _cmd_generate(self, param: str, stream_id: str, group_id: str) -> tuple:
         try:

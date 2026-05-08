@@ -1,8 +1,8 @@
-"""LLM 调用包装(参考 google_search_plugin)。
+"""LLM 调用包装。
 
 设计要点:
 - 必须显式传 ``model=`` 参数,否则 host ``resolve_task_name("")`` 字母序回退到
-  ``embedding`` task,导致 chat completion 失败(google_search 计划 Bug C)。
+  ``embedding`` task,导致 chat completion 失败。
 - 区分"调用失败"(异常 / success=False / 超时) vs "模型返空响应"。
 
 ⚠️ 已知限制:host 侧 RPC 桥接层硬编码 30s 超时

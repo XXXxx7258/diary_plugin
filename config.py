@@ -2,7 +2,7 @@
 
 按 PluginConfigBase 拆分为 6 个 section。注意 ``[custom_model]`` section 名
 故意不叫 ``model_config`` —— Pydantic v2 把这个名字保留给 BaseModel 的元数据
-属性,不能用作字段名(参考 google_search_plugin 同款踩坑)。
+属性,不能用作字段名。
 """
 
 from typing import Literal
@@ -113,7 +113,7 @@ class DefaultModelSection(PluginConfigBase):
     """系统默认模型配置(走 ctx.llm.generate 时使用)。
 
     显式声明 model 参数,避免 host ``resolve_task_name("")`` 字母序回退到
-    ``embedding`` task(google_search_plugin 计划文档 Bug C)。
+    ``embedding`` task。
     """
 
     __ui_label__ = "默认模型"

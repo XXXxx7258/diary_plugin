@@ -1,4 +1,4 @@
-"""RPC envelope 剥皮工具(从 google_search_plugin 复用)。
+"""RPC envelope 剥皮工具。
 
 新版 SDK / Runner 在某些 capability 调用上返回双层 envelope:
     {"success": True, "result": {"success": True, "messages": [...]}}
