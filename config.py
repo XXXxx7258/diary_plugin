@@ -106,7 +106,6 @@ class CustomModelSection(PluginConfigBase):
     model_name: str = Field(default="Pro/deepseek-ai/DeepSeek-V3", description="模型名称")
     temperature: float = Field(default=0.7, description="生成温度")
     api_timeout: int = Field(default=300, ge=1, le=6000, description="API 调用超时(秒),大量聊天记录建议设置更长")
-    max_context_tokens: int = Field(default=256, description="模型上下文长度(单位 k),填写模型实际上限")
 
 
 class DefaultModelSection(PluginConfigBase):

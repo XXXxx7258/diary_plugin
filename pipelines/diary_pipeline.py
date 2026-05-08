@@ -95,17 +95,9 @@ class DiaryPipeline:
         end_minute: Optional[int] = None,
         target_chats: Optional[List[str]] = None,
         ignore_filter: bool = False,
+        ignore_min_messages_per_chat: bool = False,
     ) -> List[Dict[str, Any]]:
-        date_obj = datetime.datetime.strptime(date, "%Y-%m-%d")
-        start_time = date_obj.timestamp()
-        if end_hour is not None and end_minute is not None:
-            end_time = date_obj.replace(hour=end_hour, minute=end_minute, second=0).timestamp()
-        else:
-            now = datetime.datetime.now()
-            if now.strftime("%Y-%m-%d") == date:
-                end_time = now.timestamp()
-            else:
-                end_time = (date_obj + datetime.timedelta(days=1)).timestamp()
+        start_time, end_time = self._resolve_time_window(date, end_hour, end_minute)
 
         if target_chats:
             messages = await self._fetcher.fetch_for_chats(target_chats, start_time, end_time)
@@ -119,10 +111,50 @@ class DiaryPipeline:
                 end_time,
             )
 
-        min_per_chat = self._config.diary_generation.min_messages_per_chat
-        if min_per_chat > 0:
-            messages = MessageFetcher.filter_min_messages_per_chat(messages, min_per_chat)
+        if not ignore_min_messages_per_chat:
+            min_per_chat = self._config.diary_generation.min_messages_per_chat
+            if min_per_chat > 0:
+                messages = MessageFetcher.filter_min_messages_per_chat(messages, min_per_chat)
         return messages
+
+    def _resolve_time_window(
+        self,
+        date: str,
+        end_hour: Optional[int] = None,
+        end_minute: Optional[int] = None,
+    ) -> Tuple[float, float]:
+        """统一用 schedule.timezone 计算 [start_time, end_time] 时间戳。"""
+        try:
+            import pytz
+            tz = pytz.timezone(self._config.schedule.timezone)
+        except Exception:
+            tz = None
+
+        naive = datetime.datetime.strptime(date, "%Y-%m-%d")
+        if tz is not None:
+            date_obj = tz.localize(naive)
+            now = datetime.datetime.now(tz)
+        else:
+            date_obj = naive
+            now = datetime.datetime.now()
+
+        start_time = date_obj.timestamp()
+        if end_hour is not None and end_minute is not None:
+            end_time = date_obj.replace(hour=end_hour, minute=end_minute, second=0).timestamp()
+        elif now.strftime("%Y-%m-%d") == date:
+            end_time = now.timestamp()
+        else:
+            end_time = (date_obj + datetime.timedelta(days=1)).timestamp()
+        return start_time, end_time
+
+    def _today_str(self) -> str:
+        """schedule.timezone 下的 'YYYY-MM-DD'。"""
+        try:
+            import pytz
+            tz = pytz.timezone(self._config.schedule.timezone)
+            return datetime.datetime.now(tz).strftime("%Y-%m-%d")
+        except Exception:
+            return datetime.datetime.now().strftime("%Y-%m-%d")
 
     async def generate_from_messages(
         self,
@@ -224,7 +256,7 @@ class DiaryPipeline:
         return success
 
     async def generate_and_publish_for_today(self) -> Tuple[bool, str]:
-        today = datetime.datetime.now().strftime("%Y-%m-%d")
+        today = self._today_str()
         messages = await self.fetch_messages_for_date(today)
         success, result = await self.generate_from_messages(today, messages, force_50k=True)
         if not success:
@@ -300,24 +332,24 @@ class DiaryPipeline:
         cfg = self._config.custom_model
         if not cfg.api_key or cfg.api_key in ("your-rinko-key-here", "sk-your-siliconflow-key-here"):
             raise LLMCallError("自定义模型 API key 未配置")
-        client = AsyncOpenAI(base_url=cfg.api_url, api_key=cfg.api_key)
-        try:
-            completion = await asyncio.wait_for(
-                client.chat.completions.create(
-                    model=cfg.model_name,
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=cfg.temperature,
-                ),
-                timeout=cfg.api_timeout,
-            )
-        except asyncio.TimeoutError as exc:
-            raise LLMCallError(f"自定义模型超时 ({cfg.api_timeout}s)") from exc
-        except Exception as exc:
-            raise LLMCallError(f"自定义模型调用异常: {exc}") from exc
-        if not completion.choices:
-            raise LLMCallError("自定义模型返回空 choices")
-        content = completion.choices[0].message.content or ""
-        return content.strip()
+        async with AsyncOpenAI(base_url=cfg.api_url, api_key=cfg.api_key) as client:
+            try:
+                completion = await asyncio.wait_for(
+                    client.chat.completions.create(
+                        model=cfg.model_name,
+                        messages=[{"role": "user", "content": prompt}],
+                        temperature=cfg.temperature,
+                    ),
+                    timeout=cfg.api_timeout,
+                )
+            except asyncio.TimeoutError as exc:
+                raise LLMCallError(f"自定义模型超时 ({cfg.api_timeout}s)") from exc
+            except Exception as exc:
+                raise LLMCallError(f"自定义模型调用异常: {exc}") from exc
+            if not completion.choices:
+                raise LLMCallError("自定义模型返回空 choices")
+            content = completion.choices[0].message.content or ""
+            return content.strip()
 
     async def _save_failed(self, date: str, weather: str, error_message: str) -> None:
         try:

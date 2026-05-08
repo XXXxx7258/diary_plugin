@@ -8,7 +8,6 @@ import contextlib
 import datetime
 import logging
 import re
-import time
 from typing import Any, Optional
 
 from maibot_sdk import Command, MaiBotPlugin, Tool
@@ -490,15 +489,18 @@ class DiaryPlugin(MaiBotPlugin):
                 stream = await self.ctx.chat.get_stream_by_group_id(group_id)
                 stream = peel_envelope(stream)
                 target_stream = stream.get("stream", stream) if isinstance(stream, dict) else None
-                sid = (target_stream or {}).get("session_id") or (target_stream or {}).get("stream_id") if isinstance(target_stream, dict) else None
+                if isinstance(target_stream, dict):
+                    sid = target_stream.get("session_id") or target_stream.get("stream_id")
+                else:
+                    sid = None
                 if sid:
-                    messages = await self._pipeline.fetch_messages_for_date(date, target_chats=[sid])
+                    messages = await self._pipeline.fetch_messages_for_date(date, target_chats=[sid], ignore_min_messages_per_chat=True)
                     context_desc = f"【本群】({group_id} → {sid})"
                 else:
                     messages = []
                     context_desc = f"【本群】({group_id} → 未找到)"
             else:
-                messages = await self._pipeline.fetch_messages_for_date(date, ignore_filter=True)
+                messages = await self._pipeline.fetch_messages_for_date(date, ignore_filter=True, ignore_min_messages_per_chat=True)
                 context_desc = "【全局日记】"
         except Exception as exc:
             self.ctx.logger.error("debug 取消息失败: %s", exc, exc_info=True)

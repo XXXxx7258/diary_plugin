@@ -1,7 +1,6 @@
 """日期工具。"""
 
 import datetime
-import re
 from typing import Any
 
 
@@ -20,9 +19,6 @@ def format_date_str(date_input: Any) -> str:
                 return datetime.datetime.strptime(date_input, fmt).strftime("%Y-%m-%d")
             except ValueError:
                 continue
-        if re.match(r"^\d{4}-\d{1,2}-\d{1,2}$", date_input):
-            return date_input
-
     raise ValueError(
         f"无法识别的日期格式: {date_input}。支持 YYYY-MM-DD / YYYY/MM/DD / YYYY.MM.DD"
     )
